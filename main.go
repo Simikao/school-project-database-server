@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -37,7 +38,17 @@ var (
 	}
 )
 
+func newStyle() (style *log.Styles) {
+	style = log.DefaultStyles()
+	pinkText := lipgloss.NewStyle().Foreground(lipgloss.Color("#c88d94"))
+	greyText := lipgloss.NewStyle().Foreground(lipgloss.Color("#808080"))
+	style.Key = pinkText
+	style.Value = greyText
+	return
+}
+
 func main() {
+	log.SetStyles(newStyle())
 	log.Info("Hello world")
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
@@ -48,7 +59,7 @@ func main() {
 	}
 	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Fatal("Connection failed: ", err)
+		log.Fatal("Connection failed: ", "details -> ", err)
 	}
 
 	redditos := client.Database("redditos")
