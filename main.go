@@ -3,32 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/mail"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
+	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/handler"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type User struct {
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
-	Name     string `json:"name" bson:"name"`
-}
-
-type Post struct {
-	Title   string `json:"title" bson:"title"`
-	Content string `json:"content" bson:"content"`
-	Author  User   `json:"author" bson:"author"`
-}
 
 var (
 	uri  = "mongodb://localhost:27017"
@@ -48,6 +36,14 @@ func newStyle() (style *log.Styles) {
 }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
+
+	// newUser := datatype.User{
+	// 	Email:    "ala@niemako.ta",
+	// 	Name:     "Adamek",
+	// 	Password: "hashysz",
+	// 	DoB:      time.Date(2020, time.Now().Month(), 2, 0, 0, 0, 0, time.Local),
+	// }
 	log.SetStyles(newStyle())
 	log.Info("Hello world")
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
@@ -70,45 +66,19 @@ func main() {
 		c.String(200, "hello World")
 	})
 	r.POST("/", func(c *gin.Context) {
-		u := User{
+		u := datatype.User{
 			Email:    "ala@niemako.ta",
 			Name:     "Adam",
 			Password: "hashysz",
 		}
-		post := Post{
+		post := datatype.Post{
 			Title:   "Bigsmall World",
 			Content: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
 			Author:  u,
 		}
 		c.JSON(200, post)
 	})
-	r.POST("/add", func(c *gin.Context) {
-		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-		defer cancel()
-		newUser := User{
-			Email:    "ala@niemako.ta",
-			Name:     "Adam",
-			Password: "hashysz",
-		}
-		_, err := mail.ParseAddress(newUser.Email)
-		if err != nil {
-			c.String(200, "Wrong email address")
-		}
-		id, err := ex.InsertOne(ctx, newUser)
-		if err != nil {
-			c.String(500, err.Error())
-			return
-		}
-		c.String(200, id.InsertedID.(primitive.ObjectID).Hex())
-		var result User
-		err = ex.FindOne(ctx, bson.M{"_id": id.InsertedID}).Decode(&result)
-		if err != nil {
-			c.String(500, "Something went wrong")
-			return
-		}
-		c.JSON(200, result)
-
-	})
+	r.POST("/add", func(c *gin.Context) { handler.AddNewUser(c, ex) })
 	r.GET("/find", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()
@@ -117,9 +87,9 @@ func main() {
 		if err != nil {
 			c.String(500, err.Error())
 		}
-		var results []User
+		var results []datatype.User
 		for cur.Next(ctx) {
-			var elem User
+			var elem datatype.User
 			err := cur.Decode(&elem)
 			if err != nil {
 				c.String(500, err.Error())
@@ -139,11 +109,12 @@ func main() {
 	quitCtx, quitCancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer quitCancel()
 	err = ex.Drop(quitCtx)
-	fmt.Println("Dropping database")
+	fmt.Println()
+	log.Info("Dropping database")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println("Closing connection")
+	log.Info("Closing connection")
 	err = ex.Database().Client().Disconnect(quitCtx)
 	if err != nil {
 		log.Fatal(err.Error())
