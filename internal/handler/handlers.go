@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"time"
 
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
@@ -28,21 +27,9 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	var user datatype.User
-	jsonData, err := io.ReadAll(c.Request.Body)
+	err = json.NewDecoder(c.Request.Body).Decode(&user)
 	if err != nil {
-		log.Error("jsonDataError:" + err.Error())
-	}
-	log.Info(string(jsonData))
-
-	err = json.Unmarshal(jsonData, &user)
-	log.Debug(user)
-	if err != nil {
-		log.Error("Error unmarshalling:" + err.Error())
-		c.JSON(400, struct {
-			Err string `json:"error"`
-			Msg string `json:"message"`
-		}{"Invalid syntax", "Cannot read the JSON file"})
-		return
+		log.Error(err.Error())
 	}
 
 	err = validate.Struct(user)
