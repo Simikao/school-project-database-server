@@ -35,8 +35,25 @@ func newStyle() (style *log.Styles) {
 	return
 }
 
+func logLevel() {
+	switch level := os.Getenv("SERVERLOG"); level {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "warning":
+		log.SetLevel(log.WarnLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+}
+
 func main() {
-	log.SetLevel(log.DebugLevel)
+	logLevel()
 
 	// newUser := datatype.User{
 	// 	Email:    "ala@niemako.ta",

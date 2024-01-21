@@ -4,4 +4,10 @@ server:
 clean:
 	rm -f bin/*
 	
-.PHONY: server clean
+dup:
+	docker compose up -d
+
+ddown:
+	docker compose down
+
+.PHONY: server clean dup ddown
