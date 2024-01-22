@@ -47,11 +47,48 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	response := id.InsertedID.(primitive.ObjectID).Hex()
+	log.Debug("Added user of id:", response)
 	c.JSON(200, struct {
 		Success bool   `json:"success"`
 		Data    string `json:"payload"`
 	}{
 		true,
-		"Added user of id: " + response,
+		"Added user",
+	})
+}
+
+func AddNewPost(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	validate := validator.New()
+
+	var user datatype.Post
+	err := json.NewDecoder(c.Request.Body).Decode(&user)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	err = validate.Struct(user)
+	if err != nil {
+		log.Error(err.Error())
+		errors := err.(validator.ValidationErrors)
+		c.String(400, errors.Error())
+		return
+	}
+
+	id, err := collection.InsertOne(ctx, user)
+	if err != nil {
+		c.String(500, err.Error())
+		return
+	}
+
+	response := id.InsertedID.(primitive.ObjectID).Hex()
+	c.JSON(200, struct {
+		Success bool   `json:"success"`
+		Data    string `json:"payload"`
+	}{
+		true,
+		"Added post of id: " + response,
 	})
 }

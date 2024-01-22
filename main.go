@@ -76,31 +76,22 @@ func main() {
 	}
 
 	redditos := client.Database("redditos")
-	ex := redditos.Collection("example")
+	users := redditos.Collection("users")
+	posts := redditos.Collection("posts")
 
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
 		c.String(200, "hello World")
 	})
-	r.POST("/", func(c *gin.Context) {
-		u := datatype.User{
-			Email:    "ala@niemako.ta",
-			Name:     "Adam",
-			Password: "hashysz",
-		}
-		post := datatype.Post{
-			Title:   "Bigsmall World",
-			Content: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-			Author:  u,
-		}
-		c.JSON(200, post)
-	})
-	r.POST("/add", func(c *gin.Context) { handler.AddNewUser(c, ex) })
+
+	r.POST("/add", func(c *gin.Context) { handler.AddNewUser(c, users) })
+	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
+
 	r.GET("/find", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 		defer cancel()
 
-		cur, err := ex.Find(ctx, bson.D{})
+		cur, err := users.Find(ctx, bson.D{})
 		if err != nil {
 			c.String(500, err.Error())
 		}
@@ -125,14 +116,14 @@ func main() {
 	<-quit
 	quitCtx, quitCancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer quitCancel()
-	err = ex.Drop(quitCtx)
+	err = users.Drop(quitCtx)
 	fmt.Println()
 	log.Info("Dropping database")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	log.Info("Closing connection")
-	err = ex.Database().Client().Disconnect(quitCtx)
+	err = users.Database().Client().Disconnect(quitCtx)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
