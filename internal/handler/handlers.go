@@ -25,7 +25,10 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	if err != nil {
 		log.Error(err.Error())
 	}
-
+	err = validate.RegisterValidation("isUnique", validators.IsUniqueName)
+	if err != nil {
+		log.Error(err.Error())
+	}
 	var user datatype.User
 	err = json.NewDecoder(c.Request.Body).Decode(&user)
 	if err != nil {
@@ -47,7 +50,7 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	response := id.InsertedID.(primitive.ObjectID).Hex()
-	log.Debug("Added user of id:", response)
+	log.Debug("Added user of id:" + response)
 	c.JSON(200, struct {
 		Success bool   `json:"success"`
 		Data    string `json:"payload"`
@@ -63,8 +66,13 @@ func AddNewPost(c *gin.Context, collection *mongo.Collection) {
 
 	validate := validator.New()
 
+	err := validate.RegisterValidation("isUnique", validators.IsUniqueTitle)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
 	var user datatype.Post
-	err := json.NewDecoder(c.Request.Body).Decode(&user)
+	err = json.NewDecoder(c.Request.Body).Decode(&user)
 	if err != nil {
 		log.Error(err.Error())
 	}

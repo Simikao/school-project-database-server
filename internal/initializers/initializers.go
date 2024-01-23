@@ -39,4 +39,5 @@ func PreStart() {
 	log.SetStyles(newStyle())
 
 	log.Info("Hello world")
+	log.Debug("Running in debug mode")
 }

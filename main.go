@@ -10,6 +10,7 @@ import (
 
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/handler"
+	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/initializers"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +28,7 @@ var (
 
 func main() {
 
+	initializers.PreStart()
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
@@ -82,10 +84,18 @@ func main() {
 	defer quitCancel()
 	err = users.Drop(quitCtx)
 	fmt.Println()
-	log.Info("Dropping database")
+	log.Info("Dropping users")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	err = posts.Drop(quitCtx)
+	fmt.Println()
+	log.Info("Dropping posts")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	log.Info("Closing connection")
 	err = users.Database().Client().Disconnect(quitCtx)
 	if err != nil {

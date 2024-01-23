@@ -12,7 +12,7 @@ type CustomTime struct {
 
 type User struct {
 	ID       primitive.ObjectID `json:"-" bson:"_id,omitempty"`
-	Name     string             `json:"name" bson:"name" validate:"required,min=5,max=20"`
+	Name     string             `json:"name" bson:"name" validate:"required,min=5,max=20,isUnique"`
 	Password string             `json:"password" bson:"password" validate:"required"`
 	Email    string             `json:"email" bson:"email" validate:"required,email"`
 	DoB      time.Time          `json:"dob" bson:"dob" validate:"required,dob"`
@@ -20,10 +20,10 @@ type User struct {
 
 type Post struct {
 	ID      primitive.ObjectID `json:"-" bson:"_id,omitempty"`
-	Title   string             `json:"title" bson:"title"`
-	Content string             `json:"content" bson:"content"`
-	Author  User               `json:"author" bson:"author"`
-	Karma   int                `json:"karma" bson:"karma"`
+	Title   string             `json:"title" bson:"title" validate:"required,isUnique"`
+	Content string             `json:"content" bson:"content" validate:"required"`
+	Author  primitive.ObjectID `json:"author" bson:"author"`
+	Karma   int                `json:"-" bson:"karma"`
 }
 
 type Community struct {
