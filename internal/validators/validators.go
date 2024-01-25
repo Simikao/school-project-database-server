@@ -29,16 +29,24 @@ func isNameExists(name string, querry string) (bool, error) {
 	}
 	var count int64 = 1
 	defer client.Disconnect(ctx)
-	if querry == "name" {
+	switch querry {
+	case "name":
 		filter := bson.M{"name": name}
 		collection := client.Database("redditos").Collection("users")
 		count, err = collection.CountDocuments(ctx, filter)
 		if err != nil {
 			return false, err
 		}
-	} else if querry == "title" {
+	case "title":
 		filter := bson.M{"title": name}
 		collection := client.Database("redditos").Collection("posts")
+		count, err = collection.CountDocuments(ctx, filter)
+		if err != nil {
+			return false, err
+		}
+	case "comm":
+		filter := bson.M{"name": name}
+		collection := client.Database("redditos").Collection("communities")
 		count, err = collection.CountDocuments(ctx, filter)
 		if err != nil {
 			return false, err
@@ -71,6 +79,17 @@ func IsUniqueTitle(f1 validator.FieldLevel) bool {
 	name := f1.Field().String()
 
 	exists, err := isNameExists(name, "title")
+	if err != nil {
+		return false
+	}
+	log.Debug(exists)
+	return !exists
+}
+
+func IsUniqueCommunity(f1 validator.FieldLevel) bool {
+	name := f1.Field().String()
+
+	exists, err := isNameExists(name, "comm")
 	if err != nil {
 		return false
 	}

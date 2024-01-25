@@ -100,3 +100,43 @@ func AddNewPost(c *gin.Context, collection *mongo.Collection) {
 		"Added post of id: " + response,
 	})
 }
+
+func AddNewCommunity(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	validate := validator.New()
+	err := validate.RegisterValidation("isUnique", validators.IsUniqueName)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	var community datatype.Community
+	err = json.NewDecoder(c.Request.Body).Decode(&community)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	err = validate.Struct(community)
+	if err != nil {
+		log.Error(err.Error())
+		errors := err.(validator.ValidationErrors)
+		c.String(400, errors.Error())
+		return
+	}
+
+	id, err := collection.InsertOne(ctx, community)
+	if err != nil {
+		c.String(500, err.Error())
+		return
+	}
+
+	response := id.InsertedID.(primitive.ObjectID).Hex()
+	log.Debug("Added community of id:" + response)
+	c.JSON(200, struct {
+		Success bool   `json:"success"`
+		Data    string `json:"payload"`
+	}{
+		true,
+		"Added community" + community.Name,
+	})
+}

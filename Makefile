@@ -1,6 +1,9 @@
 server:
 	go build -o bin/server main.go
 
+run: server
+	bin/server
+
 clean:
 	rm -f bin/*
 	

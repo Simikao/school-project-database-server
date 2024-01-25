@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,14 +45,17 @@ func main() {
 	redditos := client.Database("redditos")
 	users := redditos.Collection("users")
 	posts := redditos.Collection("posts")
+	communities := redditos.Collection("communities")
 
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
-		c.String(200, "hello World")
+		c.String(http.StatusCreated, "hello World")
 	})
 
+	// r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities)})
 	r.POST("/add", func(c *gin.Context) { handler.AddNewUser(c, users) })
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
+	r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities) })
 
 	r.GET("/find", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
@@ -92,6 +96,13 @@ func main() {
 	err = posts.Drop(quitCtx)
 	fmt.Println()
 	log.Info("Dropping posts")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = communities.Drop(quitCtx)
+	fmt.Println()
+	log.Info("Dropping communities")
 	if err != nil {
 		log.Fatal(err.Error())
 	}

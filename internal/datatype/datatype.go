@@ -11,7 +11,7 @@ type CustomTime struct {
 }
 
 type User struct {
-	ID       primitive.ObjectID `json:"-" bson:"_id,omitempty"`
+	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name     string             `json:"name" bson:"name" validate:"required,min=5,max=20,isUnique"`
 	Password string             `json:"password" bson:"password" validate:"required"`
 	Email    string             `json:"email" bson:"email" validate:"required,email"`
@@ -19,18 +19,25 @@ type User struct {
 }
 
 type Post struct {
-	ID      primitive.ObjectID `json:"-" bson:"_id,omitempty"`
-	Title   string             `json:"title" bson:"title" validate:"required,isUnique"`
-	Content string             `json:"content" bson:"content" validate:"required"`
-	Author  primitive.ObjectID `json:"author" bson:"author"`
-	Karma   int                `json:"-" bson:"karma"`
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Title     string             `json:"title" bson:"title" validate:"required,isUnique"`
+	Content   string             `json:"content" bson:"content" validate:"required,max=40000"`
+	Author    primitive.ObjectID `json:"author" bson:"author"`
+	Karma     int                `json:"-" bson:"karma"`
+	Community Community          `json:"community" bson:"community" validate:"required,exists"`
 }
 
 type Community struct {
-	ID     primitive.ObjectID `json:"-" bson:"_id,omitempty"`
-	Name   string             `json:"name" bson:"name"`
-	Posts  []Post             `json:"posts" bson:"name"`
-	Admins []User             `json:"admins" bson:"admins"`
+	ID     primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
+	Name   string               `json:"name" bson:"name" validate:"required,isUnique,min=4,max=20"`
+	Posts  []primitive.ObjectID `json:"posts,omitempty" bson:"posts"`
+	Admins []primitive.ObjectID `json:"admins" bson:"admins"`
+}
+
+type Comment struct {
+	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Author  string             `json:"author" bson:"author"`
+	Content string             `json:"content" bson:"content" validate:"max=10000"`
 }
 
 // func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {
