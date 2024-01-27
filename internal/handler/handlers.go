@@ -13,6 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var ()
@@ -57,6 +58,16 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 		})
 		return
 	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 4)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Try different password",
+		})
+	}
+
+	user.Password = string(hash)
 
 	id, err := collection.InsertOne(ctx, user)
 	if err != nil {

@@ -13,7 +13,7 @@ type CustomTime struct {
 type User struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name     string             `json:"name" bson:"name" validate:"required,min=5,max=20,isUnique"`
-	Password string             `json:"password" bson:"password" validate:"required"`
+	Password string             `json:"password" bson:"password" validate:"required,min=5,max=40"`
 	Email    string             `json:"email" bson:"email" validate:"required,email"`
 	DoB      time.Time          `json:"dob" bson:"dob" validate:"required,dob"`
 }
