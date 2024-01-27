@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -71,12 +72,9 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	var user datatype.User
-	err = json.NewDecoder(c.Request.Body).Decode(&user)
+	err = bodyDecoder(c, &user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, datatype.Response{
-			Success: false,
-			Data:    "Badly formatted JSON",
-		})
+		return
 	}
 
 	err = validate.Struct(user)
@@ -118,7 +116,7 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 }
 
 func GetUser(c *gin.Context, collection *mongo.Collection) {
-	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	_, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	nameP, ok := c.Params.Get("name")
@@ -130,33 +128,133 @@ func GetUser(c *gin.Context, collection *mongo.Collection) {
 		return
 	}
 
-	filter := struct {
-		name string `bson:"name"`
-	}{
-		name: nameP,
-	}
-
-	result := collection.FindOne(ctx, filter)
-
 	var user datatype.User
-	err := result.Decode(&user)
-	if err == mongo.ErrNoDocuments {
-		c.JSON(http.StatusNotFound, datatype.Response{
-			Success: false,
-			Data:    "User not found",
-		})
-		return
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, datatype.Response{
-			Success: false,
-			Data:    "Failed decoding result",
-		})
-	}
+	findUserByName(c, collection, nameP, &user)
 
 	log.Debug("found user of id: " + user.ID.Hex())
 	c.JSON(http.StatusOK, datatype.Response{
 		Success: true,
 		Data:    user.String(),
+	})
+
+}
+
+func UpdateUser(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	name, ok := c.Params.Get("name")
+	if !ok {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Invalid parameter",
+		})
+		return
+	}
+
+	log.Debug("Got parameters")
+	var check struct {
+		User datatype.User `json:"user"`
+		Data datatype.User `json:"data"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+	log.Debug("decoded body")
+
+	if name != check.User.Name {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "You cannot edit other users",
+		})
+		return
+	}
+	log.Debug("checked names against each other")
+
+	var dbUser datatype.User
+	findUserByName(c, collection, name, &dbUser)
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	validate := validator.New()
+	if name != check.Data.Name {
+		err = validate.RegisterValidation("isUnique", validators.IsUniqueName)
+		if err != nil {
+			c.JSON(500, datatype.Response{
+				Success: false,
+				Data:    "Something went wrong with name validator",
+			})
+		}
+	} else {
+		err = validate.RegisterValidation("isUnique", func(validator.FieldLevel) bool { return true })
+		if err != nil {
+			c.JSON(500, datatype.Response{
+				Success: false,
+				Data:    "Something went wrong with name validator",
+			})
+		}
+	}
+
+	err = validate.RegisterValidation("dob", validators.DOBValidator)
+	if err != nil {
+		c.JSON(500, datatype.Response{
+			Success: false,
+			Data:    "Something went wrong with age validator",
+		})
+	}
+
+	err = validate.Struct(check.Data)
+	if err != nil {
+		log.Error(err.Error())
+		errors := err.(validator.ValidationErrors)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    errors.Error(),
+		})
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(check.Data.Password), 4)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Try different password",
+		})
+	}
+	check.Data.Password = string(hash)
+
+	log.Debug(fmt.Printf("%#v", check))
+	updatedInfo := bson.M{"$set": check.Data}
+	updatedUser, err := collection.UpdateOne(ctx, bson.M{"name": name}, updatedInfo)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Update failed, wrong data",
+		})
+		return
+	}
+
+	log.Debug("updated info")
+	if updatedUser.ModifiedCount == 0 {
+		c.JSON(http.StatusNotModified, datatype.Response{
+			Success: false,
+			Data:    "Couldn't find user",
+		})
+		return
+	}
+	log.Debug("checked if actually updated")
+	log.Debug("User updated")
+	c.JSON(http.StatusAccepted, datatype.Response{
+		Success: true,
+		Data:    "User edited",
 	})
 
 }
