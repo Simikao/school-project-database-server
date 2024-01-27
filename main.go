@@ -52,9 +52,11 @@ func main() {
 		c.String(http.StatusCreated, "hello World")
 	})
 
-	// r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities)})
-	r.POST("/add", func(c *gin.Context) { handler.AddNewUser(c, users) })
+	r.GET("/users", func(c *gin.Context) { handler.GetUsers(c, users) })
+	r.POST("/new-user", func(c *gin.Context) { handler.AddNewUser(c, users) })
+
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
+
 	r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities) })
 
 	r.GET("/find", func(c *gin.Context) {

@@ -1,6 +1,7 @@
 package datatype
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -44,6 +45,25 @@ type Comment struct {
 type Response struct {
 	Success bool   `json:"success"`
 	Data    string `json:"message"`
+}
+
+type ResponseMulti struct {
+	Success bool     `json:"success"`
+	Data    []string `json:"message"`
+}
+
+type Users []User
+
+func (u User) String() string {
+	return fmt.Sprintf("username: %q, email: %q", u.Name, u.Email)
+}
+
+func (u Users) StrSlice() []string {
+	var returnSlc []string
+	for _, v := range u {
+		returnSlc = append(returnSlc, v.String())
+	}
+	return returnSlc
 }
 
 // func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {

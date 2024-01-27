@@ -11,12 +11,43 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var ()
+
+func GetUsers(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "I guess there is a server problem",
+		})
+		return
+	}
+
+	var users datatype.Users
+	err = cursor.All(ctx, &users)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, datatype.ResponseMulti{
+		Success: true,
+		Data:    users.StrSlice(),
+	})
+}
 
 func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
