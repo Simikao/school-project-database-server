@@ -217,7 +217,7 @@ func AddNewCommunity(c *gin.Context, collection *mongo.Collection) {
 	defer cancel()
 
 	validate := validator.New()
-	err := validate.RegisterValidation("isUnique", validators.IsUniqueName)
+	err := validate.RegisterValidation("isUnique", validators.IsUniqueCommunity)
 	if err != nil {
 		log.Error(err.Error())
 	}

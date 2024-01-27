@@ -71,7 +71,7 @@ func IsUniqueName(f1 validator.FieldLevel) bool {
 	if err != nil {
 		return false
 	}
-	log.Debug(exists)
+	log.Debug("User", "Is this username taken:", exists)
 	return !exists
 }
 
@@ -82,7 +82,7 @@ func IsUniqueTitle(f1 validator.FieldLevel) bool {
 	if err != nil {
 		return false
 	}
-	log.Debug(exists)
+	log.Debug("Post", "Does title exist already:", exists)
 	return !exists
 }
 
@@ -93,6 +93,6 @@ func IsUniqueCommunity(f1 validator.FieldLevel) bool {
 	if err != nil {
 		return false
 	}
-	log.Debug(exists)
+	log.Debug("community", "does it exist already:", exists)
 	return !exists
 }
