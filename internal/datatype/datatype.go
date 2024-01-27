@@ -24,20 +24,26 @@ type Post struct {
 	Content   string             `json:"content" bson:"content" validate:"required,max=40000"`
 	Author    primitive.ObjectID `json:"author" bson:"author"`
 	Karma     int                `json:"-" bson:"karma"`
-	Community Community          `json:"community" bson:"community" validate:"required,exists"`
+	Community primitive.ObjectID `json:"community" bson:"community" validate:"required"`
 }
 
 type Community struct {
 	ID     primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
 	Name   string               `json:"name" bson:"name" validate:"required,isUnique,min=4,max=20"`
-	Posts  []primitive.ObjectID `json:"posts,omitempty" bson:"posts"`
+	Desc   string               `json:"desc" bson:"desc" validate:"required,max=20000"`
 	Admins []primitive.ObjectID `json:"admins" bson:"admins"`
+	Owner  primitive.ObjectID   `json:"owner" bson:"owner"`
 }
 
 type Comment struct {
 	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Author  string             `json:"author" bson:"author"`
+	Author  primitive.ObjectID `json:"author" bson:"author"`
 	Content string             `json:"content" bson:"content" validate:"max=10000"`
+}
+
+type Response struct {
+	Success bool   `json:"success"`
+	Data    string `json:"message"`
 }
 
 // func (t *CustomTime) UnmarshalJSON(b []byte) (err error) {
