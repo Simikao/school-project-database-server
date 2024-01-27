@@ -17,6 +17,7 @@ type User struct {
 	Password string             `json:"password" bson:"password" validate:"required,min=5,max=40"`
 	Email    string             `json:"email" bson:"email" validate:"required,email"`
 	DoB      time.Time          `json:"dob" bson:"dob" validate:"required,dob"`
+	About    string             `json:"about" bson:"about"`
 }
 
 type Post struct {
@@ -55,7 +56,7 @@ type ResponseMulti struct {
 type Users []User
 
 func (u User) String() string {
-	return fmt.Sprintf("username: %q, email: %q", u.Name, u.Email)
+	return fmt.Sprintf("username: %q, email: %q, about: %q", u.Name, u.Email, u.About)
 }
 
 func (u Users) StrSlice() []string {
