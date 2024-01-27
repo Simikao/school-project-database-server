@@ -117,6 +117,50 @@ func AddNewUser(c *gin.Context, collection *mongo.Collection) {
 	})
 }
 
+func GetUser(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	nameP, ok := c.Params.Get("name")
+	if !ok {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Invalid parameter",
+		})
+		return
+	}
+
+	filter := struct {
+		name string `bson:"name"`
+	}{
+		name: nameP,
+	}
+
+	result := collection.FindOne(ctx, filter)
+
+	var user datatype.User
+	err := result.Decode(&user)
+	if err == mongo.ErrNoDocuments {
+		c.JSON(http.StatusNotFound, datatype.Response{
+			Success: false,
+			Data:    "User not found",
+		})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed decoding result",
+		})
+	}
+
+	log.Debug("found user of id: " + user.ID.Hex())
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    user.String(),
+	})
+
+}
+
 func AddNewPost(c *gin.Context, collection *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()

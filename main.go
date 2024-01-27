@@ -54,6 +54,7 @@ func main() {
 
 	r.GET("/users", func(c *gin.Context) { handler.GetUsers(c, users) })
 	r.POST("/new-user", func(c *gin.Context) { handler.AddNewUser(c, users) })
+	r.GET("/users/:name", func(c *gin.Context) { handler.GetUser(c, users) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 
