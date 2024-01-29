@@ -131,7 +131,9 @@ func GetUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	var user datatype.User
-	if !findUserByName(c, collection, nameP, &user)
+	if !findUserByName(c, collection, nameP, &user) {
+		return
+	}
 
 	log.Debug("found user of id: " + user.ID.Hex())
 	c.JSON(http.StatusOK, datatype.Response{
@@ -257,6 +259,15 @@ func UpdateUser(c *gin.Context, collection *mongo.Collection) {
 		Success: true,
 		Data:    "User edited",
 	})
+}
+
+// func DeleteUser(c *gin.Context, collection *mongo.Collection) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+// 	defer cancel()
+
+// 	var dbUser datatype.User
+
+// }
 
 func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)

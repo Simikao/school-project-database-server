@@ -78,7 +78,65 @@ func findUserByID(c *gin.Context, collection *mongo.Collection, id primitive.Obj
 			Success: false,
 			Data:    "Failed decoding result",
 		})
+		return false
+	}
+	return true
+}
+
+func verifyUser(c *gin.Context, collection *mongo.Collection, dbUser *datatype.User) {
+	_, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	name, ok := c.Params.Get("name")
+	if !ok {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Invalid parameter",
+		})
 		return
 	}
+	var check struct {
+		User datatype.User `json:"user"`
+		Data datatype.User `json:"data"`
+	}
 
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+	log.Debug("decoded body")
+
+	if name != check.User.Name {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "You cannot edit other users",
+		})
+		return
+	}
+	log.Debug("checked names against each other")
+
+	findUserByName(c, collection, name, dbUser)
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
 }
+
+// func authorize(c *gin.Context, dbUser *datatype.User) bool {
+// 	access := false
+// 	if slices.Contains(initializers.Admin, dbUser.ID) {
+// 		err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+// 		if err != nil {
+// 			c.JSON(http.StatusForbidden, datatype.Response{
+// 				Success: false,
+// 				Data:    err.Error(),
+// 			})
+// 			return false
+// 		}
+// 	}
+// 	return ifAdmin
+// }
