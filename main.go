@@ -46,6 +46,7 @@ func main() {
 	users := redditos.Collection("users")
 	posts := redditos.Collection("posts")
 	communities := redditos.Collection("communities")
+	admins := redditos.Collection("admins")
 
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
@@ -56,6 +57,8 @@ func main() {
 	r.POST("/u", func(c *gin.Context) { handler.AddNewUser(c, users) })
 	r.GET("/u/:name", func(c *gin.Context) { handler.GetUser(c, users) })
 	r.PUT("/u/:name", func(c *gin.Context) { handler.UpdateUser(c, users) })
+	// r.DELETE("/u/:name", func(c *gin.Context) { handler.DeleteUser(c, users) })
+	r.POST("/a", func(c *gin.Context) { handler.AddNewAdmin(c, users, admins) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 
@@ -82,7 +85,7 @@ func main() {
 		c.JSON(200, results)
 
 	})
-
+	initializers.OGAdmin(admins)
 	go r.Run()
 
 	quit := make(chan os.Signal, 1)

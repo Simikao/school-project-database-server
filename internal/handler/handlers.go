@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
+	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/initializers"
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/validators"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
@@ -129,14 +131,13 @@ func GetUser(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	var user datatype.User
-	findUserByName(c, collection, nameP, &user)
+	if !findUserByName(c, collection, nameP, &user)
 
 	log.Debug("found user of id: " + user.ID.Hex())
 	c.JSON(http.StatusOK, datatype.Response{
 		Success: true,
 		Data:    user.String(),
 	})
-
 }
 
 func UpdateUser(c *gin.Context, collection *mongo.Collection) {
@@ -257,6 +258,60 @@ func UpdateUser(c *gin.Context, collection *mongo.Collection) {
 		Data:    "User edited",
 	})
 
+func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User      `json:"user"`
+		Data primitive.ObjectID `json:"data"`
+	}
+	bodyDecoder(c, &check)
+
+	if !slices.Contains(initializers.Admins, check.User.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Only admins can do this",
+		})
+	}
+
+	var curAdmin datatype.User
+	if !findUserByName(c, collection, check.User.Name, &curAdmin) {
+		return
+	}
+	log.Debug("AddNewAdmin", check.User.Name, curAdmin.Name)
+	log.Debug("AddNewAdmin", check.User.Password, curAdmin.Password)
+
+	err := bcrypt.CompareHashAndPassword([]byte(curAdmin.Password), []byte(check.User.Password))
+	if err != nil {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	var newAdminTemp datatype.User
+	findUserByID(c, collection, check.Data, &newAdminTemp)
+
+	newAdmin := datatype.Administrator{
+		UserID:   newAdminTemp.ID,
+		Name:     newAdminTemp.Name,
+		Password: newAdminTemp.Password,
+	}
+	_, err = admins.InsertOne(ctx, newAdmin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Problem with database",
+		})
+		return
+	}
+	initializers.Admins = append(initializers.Admins, newAdmin.Name)
+	log.Debug("All admins", "list:", initializers.Admins)
+	c.JSON(http.StatusCreated, datatype.Response{
+		Success: true,
+		Data:    "Admin added",
+	})
 }
 
 func AddNewPost(c *gin.Context, collection *mongo.Collection) {

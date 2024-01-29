@@ -7,10 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CustomTime struct {
-	time.Time
-}
-
 type User struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name     string             `json:"name" bson:"name" validate:"required,min=5,max=20,isUnique"`
@@ -41,6 +37,13 @@ type Comment struct {
 	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Author  primitive.ObjectID `json:"author" bson:"author"`
 	Content string             `json:"content" bson:"content" validate:"max=10000"`
+}
+
+type Administrator struct {
+	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UserID   primitive.ObjectID `json:"userid" bson:"userid"`
+	Name     string             `json:"name" bson:"name"`
+	Password string             `json:"password" bson:"password"`
 }
 
 type Response struct {
