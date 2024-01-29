@@ -58,7 +58,7 @@ func main() {
 	r.GET("/u/:name", func(c *gin.Context) { handler.GetUser(c, users) })
 	r.PUT("/u/:name", func(c *gin.Context) { handler.UpdateUser(c, users) })
 	r.POST("/a", func(c *gin.Context) { handler.AddNewAdmin(c, users, admins) })
-	// r.DELETE("/u/:name", func(c *gin.Context) { handler.DeleteUser(c, users) })
+	r.DELETE("/u", func(c *gin.Context) { handler.DeleteUser(c, users) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 

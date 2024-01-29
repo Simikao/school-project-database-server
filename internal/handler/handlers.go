@@ -261,13 +261,64 @@ func UpdateUser(c *gin.Context, collection *mongo.Collection) {
 	})
 }
 
-// func DeleteUser(c *gin.Context, collection *mongo.Collection) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-// 	defer cancel()
+func DeleteUser(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
 
-// 	var dbUser datatype.User
+	var check struct {
+		User datatype.User `json:"user"`
+		Data datatype.User `json:"data"`
+	}
 
-// }
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	var rmUser datatype.User
+	if !findUserByName(c, collection, check.Data.Name, &rmUser) {
+		return
+	}
+
+	err = verifyUser(c, collection, &dbUser, &rmUser, check.User.Password)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	if slices.Contains(initializers.Admins, rmUser.Name) {
+		removeElement(initializers.Admins, rmUser.Name)
+	}
+
+	delResult, err := collection.DeleteOne(ctx, bson.M{"_id": rmUser.ID})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Update failed, wrong data",
+		})
+		return
+	}
+
+	if delResult.DeletedCount == 0 {
+		c.JSON(http.StatusNotModified, datatype.Response{
+			Success: false,
+			Data:    "Couldn't find the user",
+		})
+		return
+	}
+
+	log.Debug("User removed, bye bye " + rmUser.Name)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "User removed",
+	})
+
+}
 
 func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)

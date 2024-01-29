@@ -3,10 +3,13 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
+	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/initializers"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -83,60 +86,44 @@ func findUserByID(c *gin.Context, collection *mongo.Collection, id primitive.Obj
 	return true
 }
 
-func verifyUser(c *gin.Context, collection *mongo.Collection, dbUser *datatype.User) {
+func verifyUser(c *gin.Context, collection *mongo.Collection, dbUser *datatype.User, rmUser *datatype.User, password string) error {
 	_, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	name, ok := c.Params.Get("name")
-	if !ok {
-		c.JSON(http.StatusBadRequest, datatype.Response{
-			Success: false,
-			Data:    "Invalid parameter",
-		})
-		return
-	}
-	var check struct {
-		User datatype.User `json:"user"`
-		Data datatype.User `json:"data"`
+	var temp bool
+
+	if slices.Contains(initializers.Admins, dbUser.Name) {
+		temp = true
+	} else if rmUser.Name == dbUser.Name {
+		temp = true
 	}
 
-	err := bodyDecoder(c, &check)
-	if err != nil {
-		return
-	}
-	log.Debug("decoded body")
-
-	if name != check.User.Name {
+	if !temp {
 		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
 			Success: false,
 			Data:    "You cannot edit other users",
 		})
-		return
+		return errors.New("access denied")
 	}
-	log.Debug("checked names against each other")
 
-	findUserByName(c, collection, name, dbUser)
-	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(password))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
 			Success: false,
 			Data:    err.Error(),
 		})
-		return
+		return err
 	}
+
+	return nil
 }
 
-// func authorize(c *gin.Context, dbUser *datatype.User) bool {
-// 	access := false
-// 	if slices.Contains(initializers.Admin, dbUser.ID) {
-// 		err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
-// 		if err != nil {
-// 			c.JSON(http.StatusForbidden, datatype.Response{
-// 				Success: false,
-// 				Data:    err.Error(),
-// 			})
-// 			return false
-// 		}
-// 	}
-// 	return ifAdmin
-// }
+func removeElement(slice []string, element string) []string {
+	var result []string
+	for _, e := range slice {
+		if e != element {
+			result = append(result, e)
+		}
+	}
+	return result
+}
