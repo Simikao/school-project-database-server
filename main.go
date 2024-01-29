@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -49,9 +47,7 @@ func main() {
 	admins := redditos.Collection("admins")
 
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusCreated, "hello World")
-	})
+	r.GET("/", func(c *gin.Context) { handler.MainPage(c, posts) })
 
 	r.GET("/u", func(c *gin.Context) { handler.GetUsers(c, users) })
 	r.POST("/u", func(c *gin.Context) { handler.AddNewUser(c, users) })
@@ -59,6 +55,7 @@ func main() {
 	r.PUT("/u/:name", func(c *gin.Context) { handler.UpdateUser(c, users) })
 	r.POST("/a", func(c *gin.Context) { handler.AddNewAdmin(c, users, admins) })
 	r.DELETE("/u", func(c *gin.Context) { handler.DeleteUser(c, users) })
+	// r.GET("/u/search", func(c *gin.Context) { handler.SearchUser(c, users) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 
@@ -93,26 +90,26 @@ func main() {
 	<-quit
 	quitCtx, quitCancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer quitCancel()
-	err = users.Drop(quitCtx)
-	fmt.Println()
-	log.Info("Dropping users")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	// err = users.Drop(quitCtx)
+	// fmt.Println()
+	// log.Info("Dropping users")
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
 
-	err = posts.Drop(quitCtx)
-	fmt.Println()
-	log.Info("Dropping posts")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	// err = posts.Drop(quitCtx)
+	// fmt.Println()
+	// log.Info("Dropping posts")
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
 
-	err = communities.Drop(quitCtx)
-	fmt.Println()
-	log.Info("Dropping communities")
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	// err = communities.Drop(quitCtx)
+	// fmt.Println()
+	// log.Info("Dropping communities")
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
 
 	log.Info("Closing connection")
 	err = users.Database().Client().Disconnect(quitCtx)

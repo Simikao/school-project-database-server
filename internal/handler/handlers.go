@@ -22,6 +22,67 @@ import (
 
 var ()
 
+func MainPage(c *gin.Context, posts *mongo.Collection) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	lookupAuthor := bson.D{
+		{"$lookup", bson.D{
+			{"from", "users"},
+			{"localField", "author"},
+			{"foreignField", "_id"},
+			{"as", "authorInfo"},
+		}},
+	}
+
+	lookupCommunity := bson.D{
+		{"$lookup", bson.D{
+			{"from", "communities"},
+			{"localField", "community"},
+			{"foreignField", "_id"},
+			{"as", "communityInfo"},
+		}},
+	}
+
+	projectFields := bson.D{
+		{"$project", bson.D{
+			{"_id", 0}, // Exclude post ID
+			{"title", 1},
+			{"content", 1},
+			{"karma", 1},
+			{"author", bson.D{{"$arrayElemAt", bson.A{"$authorInfo.name", 0}}}},
+			{"community", bson.D{{"$arrayElemAt", bson.A{"$communityInfo.name", 0}}}},
+		}},
+	}
+
+	sort := bson.D{{"$sort", bson.D{{"karma", -1}}}}
+
+	cursor, err := posts.Aggregate(ctx, mongo.Pipeline{lookupAuthor, lookupCommunity, projectFields, sort})
+	if err != nil {
+		c.JSON(501, datatype.Response{
+			Success: false,
+			Data:    "Failed connecting to server",
+		})
+		log.Debug(err)
+		return
+	}
+
+	var postsResults []datatype.PostResponse
+	err = cursor.All(ctx, &postsResults)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, postsResults)
+
+}
+
 func GetUsers(c *gin.Context, collection *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
@@ -317,7 +378,6 @@ func DeleteUser(c *gin.Context, collection *mongo.Collection) {
 		Success: true,
 		Data:    "User removed",
 	})
-
 }
 
 func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
@@ -408,6 +468,9 @@ func AddNewPost(c *gin.Context, collection *mongo.Collection) {
 			Data:    errors.Error(),
 		})
 		return
+	}
+	if post.Karma == 0 {
+		post.Karma = 1
 	}
 
 	id, err := collection.InsertOne(ctx, post)

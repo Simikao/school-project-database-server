@@ -25,6 +25,14 @@ type Post struct {
 	Community primitive.ObjectID `json:"community" bson:"community" validate:"required"`
 }
 
+type PostResponse struct {
+	Title     string `json:"title" bson:"title" validate:"required,isUnique"`
+	Content   string `json:"content" bson:"content" validate:"required,max=40000"`
+	Author    string `json:"author" bson:"author"`
+	Karma     int    `json:"karma,omitempty" bson:"karma"`
+	Community string `json:"community" bson:"community" validate:"required"`
+}
+
 type Community struct {
 	ID     primitive.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
 	Name   string               `json:"name" bson:"name" validate:"required,isUnique,min=4,max=20"`
