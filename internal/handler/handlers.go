@@ -683,18 +683,35 @@ func GetCommunities(c *gin.Context, collection *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
-	cursor, err := collection.Find(ctx, bson.M{})
+	var list []string
+	queryParams := c.Request.URL.Query()
+	for _, values := range queryParams {
+		list = append(list, values...)
+	}
+	log.Debug(queryParams)
+
+	var pipeline mongo.Pipeline
+	if len(list) > 0 {
+		matchStage := bson.D{
+			{"$match", bson.D{
+				{"tags", bson.D{{"$in", list}}},
+			}},
+		}
+		pipeline = append(pipeline, matchStage)
+	}
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, datatype.Response{
 			Success: false,
-			Data:    "Problems with server connection",
+			Data:    "Failed connecting to the server",
 		})
 		log.Debug(err)
 		return
 	}
 
-	var communities []datatype.CommunityResponse
-	err = cursor.All(ctx, &communities)
+	var filteredCommunities []datatype.Community
+	err = cursor.All(ctx, &filteredCommunities)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, datatype.Response{
 			Success: false,
@@ -704,5 +721,5 @@ func GetCommunities(c *gin.Context, collection *mongo.Collection) {
 		return
 	}
 
-	c.JSON(http.StatusOK, communities)
+	c.JSON(http.StatusOK, filteredCommunities)
 }
