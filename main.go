@@ -64,27 +64,6 @@ func main() {
 	r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities) })
 	r.GET("/c", func(c *gin.Context) { handler.GetCommunities(c, communities) })
 
-	r.GET("/find", func(c *gin.Context) {
-		ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-		defer cancel()
-
-		cur, err := users.Find(ctx, bson.D{})
-		if err != nil {
-			c.String(500, err.Error())
-		}
-		var results []datatype.User
-		for cur.Next(ctx) {
-			var elem datatype.User
-			err := cur.Decode(&elem)
-			if err != nil {
-				c.String(500, err.Error())
-			}
-			results = append(results, elem)
-
-		}
-		c.JSON(200, results)
-
-	})
 	initializers.OGAdmin(admins)
 	go r.Run()
 
