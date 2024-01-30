@@ -801,6 +801,10 @@ func ExportUsersToJSON(c *gin.Context, collection *mongo.Collection) {
 	defer file.Close()
 
 	file.Write(jsonData)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "File exported",
+	})
 }
 
 func ExportPostsToJSON(c *gin.Context, collection *mongo.Collection) {
@@ -879,6 +883,10 @@ func ExportPostsToJSON(c *gin.Context, collection *mongo.Collection) {
 	defer file.Close()
 
 	file.Write(jsonData)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "File exported",
+	})
 }
 
 func ExportCommentsToJSON(c *gin.Context, collection *mongo.Collection) {
@@ -957,6 +965,10 @@ func ExportCommentsToJSON(c *gin.Context, collection *mongo.Collection) {
 	defer file.Close()
 
 	file.Write(jsonData)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "File exported",
+	})
 }
 
 func ExportAdminsToJSON(c *gin.Context, collection *mongo.Collection) {
@@ -1035,6 +1047,11 @@ func ExportAdminsToJSON(c *gin.Context, collection *mongo.Collection) {
 	defer file.Close()
 
 	file.Write(jsonData)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "File exported",
+	})
+
 }
 
 func ExportCommunitiesToJSON(c *gin.Context, collection *mongo.Collection) {
@@ -1113,4 +1130,354 @@ func ExportCommunitiesToJSON(c *gin.Context, collection *mongo.Collection) {
 	defer file.Close()
 
 	file.Write(jsonData)
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "File exported",
+	})
+}
+
+func ImportUsersJSON(c *gin.Context, collection *mongo.Collection) {
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	jsonFile, err := os.ReadFile("import/" + collection.Name() + ".json")
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Cannot read file",
+		})
+		return
+	}
+
+	var data []datatype.User
+	err = json.Unmarshal(jsonFile, &data)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed unmarshalling data",
+		})
+		return
+	}
+
+	for _, datum := range data {
+		_, err := collection.InsertOne(context.Background(), datum)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, datatype.Response{
+				Success: false,
+				Data:    "Couldn't insert, aborting",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "data added",
+	})
+}
+func ImportPostsJSON(c *gin.Context, collection *mongo.Collection) {
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	jsonFile, err := os.ReadFile("import/" + collection.Name() + ".json")
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Cannot read file",
+		})
+		return
+	}
+
+	var data []datatype.Post
+	err = json.Unmarshal(jsonFile, &data)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed unmarshalling data",
+		})
+		return
+	}
+
+	for _, datum := range data {
+		_, err := collection.InsertOne(context.Background(), datum)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, datatype.Response{
+				Success: false,
+				Data:    "Couldn't insert, aborting",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "data added",
+	})
+}
+func ImportCommunitiesJSON(c *gin.Context, collection *mongo.Collection) {
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	jsonFile, err := os.ReadFile("import/" + collection.Name() + ".json")
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Cannot read file",
+		})
+		return
+	}
+
+	var data []datatype.Community
+	err = json.Unmarshal(jsonFile, &data)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed unmarshalling data",
+		})
+		return
+	}
+
+	for _, datum := range data {
+		_, err := collection.InsertOne(context.Background(), datum)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, datatype.Response{
+				Success: false,
+				Data:    "Couldn't insert, aborting",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "data added",
+	})
+}
+func ImportCommentsJSON(c *gin.Context, collection *mongo.Collection) {
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	jsonFile, err := os.ReadFile("import/" + collection.Name() + ".json")
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Cannot read file",
+		})
+		return
+	}
+
+	var data []datatype.Comment
+	err = json.Unmarshal(jsonFile, &data)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed unmarshalling data",
+		})
+		return
+	}
+
+	for _, datum := range data {
+		_, err := collection.InsertOne(context.Background(), datum)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, datatype.Response{
+				Success: false,
+				Data:    "Couldn't insert, aborting",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "data added",
+	})
+}
+func ImportAdminsJSON(c *gin.Context, collection *mongo.Collection) {
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+	jsonFile, err := os.ReadFile("import/" + collection.Name() + ".json")
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Cannot read file",
+		})
+		return
+	}
+
+	var data []datatype.Administrator
+	err = json.Unmarshal(jsonFile, &data)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed unmarshalling data",
+		})
+		return
+	}
+
+	for _, datum := range data {
+		_, err := collection.InsertOne(context.Background(), datum)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, datatype.Response{
+				Success: false,
+				Data:    "Couldn't insert, aborting",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, datatype.Response{
+		Success: true,
+		Data:    "data added",
+	})
 }

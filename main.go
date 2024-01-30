@@ -68,6 +68,12 @@ func main() {
 	r.GET("/admin/db/admins", func(c *gin.Context) { handler.ExportAdminsToJSON(c, admins) })
 	r.GET("/admin/db/comments", func(c *gin.Context) { handler.ExportCommentsToJSON(c, comments) })
 
+	r.POST("/admin/db/users", func(c *gin.Context) { handler.ImportUsersJSON(c, users) })
+	r.POST("/admin/db/communities", func(c *gin.Context) { handler.ImportCommunitiesJSON(c, communities) })
+	r.POST("/admin/db/posts", func(c *gin.Context) { handler.ImportPostsJSON(c, posts) })
+	r.POST("/admin/db/admins", func(c *gin.Context) { handler.ImportAdminsJSON(c, admins) })
+	r.POST("/admin/db/comments", func(c *gin.Context) { handler.ImportCommentsJSON(c, comments) })
+
 	initializers.OGAdmin(admins)
 	go r.Run()
 

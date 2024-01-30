@@ -1,0 +1,23 @@
+[
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "password123",
+    "dob": "1990-01-15T08:00:00Z",
+    "about": "I love coding and exploring new technologies."
+  },
+  {
+    "name": "Alice Smith",
+    "email": "alice.smith@example.com",
+    "password": "securepass",
+    "dob": "1985-05-22T12:30:00Z",
+    "about": "Passionate about art and design."
+  },
+  {
+    "name": "Bob Johnson",
+    "email": "bob.johnson@example.com",
+    "password": "bobspassword",
+    "dob": "1995-09-10T15:45:00Z",
+    "about": "Adventurous spirit with a love for travel."
+  }
+]
