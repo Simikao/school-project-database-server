@@ -80,7 +80,6 @@ func MainPage(c *gin.Context, posts *mongo.Collection) {
 	}
 
 	c.JSON(http.StatusOK, postsResults)
-
 }
 
 func GetUsers(c *gin.Context, collection *mongo.Collection) {
@@ -678,4 +677,32 @@ func AddNewCommunity(c *gin.Context, collection *mongo.Collection) {
 		Success: true,
 		Data:    "Added community " + community.Name,
 	})
+}
+
+func GetCommunities(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Problems with server connection",
+		})
+		log.Debug(err)
+		return
+	}
+
+	var communities []datatype.CommunityResponse
+	err = cursor.All(ctx, &communities)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, communities)
 }

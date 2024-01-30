@@ -45,6 +45,13 @@ type Community struct {
 	Desc   string               `json:"desc" bson:"desc" validate:"required,max=20000"`
 	Admins []primitive.ObjectID `json:"admins" bson:"admins"`
 	Owner  primitive.ObjectID   `json:"owner" bson:"owner"`
+	Tags   []string             `json:"tags" bson:"tags"`
+}
+
+type CommunityResponse struct {
+	Name string   `json:"name" bson:"name" validate:"required,isUnique,min=4,max=20"`
+	Desc string   `json:"desc" bson:"desc" validate:"required,max=20000"`
+	Tags []string `json:"tags" bson:"tags"`
 }
 
 type Comment struct {
