@@ -7,12 +7,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/datatype"
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/handler"
 	"github.com/UniversityOfGdanskProjects/projectprogramistyczny-Simikao/internal/initializers"
 	"github.com/charmbracelet/log"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -63,6 +61,12 @@ func main() {
 
 	r.POST("/new-community", func(c *gin.Context) { handler.AddNewCommunity(c, communities) })
 	r.GET("/c", func(c *gin.Context) { handler.GetCommunities(c, communities) })
+
+	r.GET("/admin/db/users", func(c *gin.Context) { handler.ExportUsersToJSON(c, users) })
+	r.GET("/admin/db/communities", func(c *gin.Context) { handler.ExportCommunitiesToJSON(c, communities) })
+	r.GET("/admin/db/posts", func(c *gin.Context) { handler.ExportPostsToJSON(c, posts) })
+	r.GET("/admin/db/admins", func(c *gin.Context) { handler.ExportAdminsToJSON(c, admins) })
+	r.GET("/admin/db/comments", func(c *gin.Context) { handler.ExportCommentsToJSON(c, comments) })
 
 	initializers.OGAdmin(admins)
 	go r.Run()

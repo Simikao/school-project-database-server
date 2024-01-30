@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"time"
 
@@ -722,4 +723,394 @@ func GetCommunities(c *gin.Context, collection *mongo.Collection) {
 	}
 
 	c.JSON(http.StatusOK, filteredCommunities)
+}
+
+func ExportUsersToJSON(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed to fetch data",
+		})
+		return
+	}
+
+	var output []datatype.User
+	err = cursor.All(ctx, &output)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed to format data",
+		})
+		return
+	}
+
+	name := collection.Name()
+	file, err := os.Create("export/" + name + ".json")
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, datatype.Response{
+			Success: false,
+			Data:    "Failed to create file",
+		})
+		return
+	}
+	defer file.Close()
+
+	file.Write(jsonData)
+}
+
+func ExportPostsToJSON(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed to fetch data",
+		})
+		return
+	}
+
+	var output []datatype.Post
+	err = cursor.All(ctx, &output)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed to format data",
+		})
+		return
+	}
+
+	name := collection.Name()
+	file, err := os.Create("export/" + name + ".json")
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, datatype.Response{
+			Success: false,
+			Data:    "Failed to create file",
+		})
+		return
+	}
+	defer file.Close()
+
+	file.Write(jsonData)
+}
+
+func ExportCommentsToJSON(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed to fetch data",
+		})
+		return
+	}
+
+	var output []datatype.Comment
+	err = cursor.All(ctx, &output)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed to format data",
+		})
+		return
+	}
+
+	name := collection.Name()
+	file, err := os.Create("export/" + name + ".json")
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, datatype.Response{
+			Success: false,
+			Data:    "Failed to create file",
+		})
+		return
+	}
+	defer file.Close()
+
+	file.Write(jsonData)
+}
+
+func ExportAdminsToJSON(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed to fetch data",
+		})
+		return
+	}
+
+	var output []datatype.Administrator
+	err = cursor.All(ctx, &output)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed to format data",
+		})
+		return
+	}
+
+	name := collection.Name()
+	file, err := os.Create("export/" + name + ".json")
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, datatype.Response{
+			Success: false,
+			Data:    "Failed to create file",
+		})
+		return
+	}
+	defer file.Close()
+
+	file.Write(jsonData)
+}
+
+func ExportCommunitiesToJSON(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	var check struct {
+		User datatype.User `json:"user"`
+	}
+
+	err := bodyDecoder(c, &check)
+	if err != nil {
+		return
+	}
+
+	var dbUser datatype.User
+	if !findUserByName(c, collection, check.User.Name, &dbUser) {
+		return
+	}
+
+	if !slices.Contains(initializers.Admins, dbUser.Name) {
+		c.JSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    "Access denied",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(check.User.Password))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, datatype.Response{
+			Success: false,
+			Data:    err.Error(),
+		})
+		return
+	}
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed to fetch data",
+		})
+		return
+	}
+
+	var output []datatype.Community
+	err = cursor.All(ctx, &output)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(output, "", "  ")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Failed to format data",
+		})
+		return
+	}
+
+	name := collection.Name()
+	file, err := os.Create("export/" + name + ".json")
+	if err != nil {
+		c.JSON(http.StatusExpectationFailed, datatype.Response{
+			Success: false,
+			Data:    "Failed to create file",
+		})
+		return
+	}
+	defer file.Close()
+
+	file.Write(jsonData)
 }
