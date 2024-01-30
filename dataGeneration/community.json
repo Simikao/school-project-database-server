@@ -1,0 +1,107 @@
+
+[ 
+{
+	"id": "65b3b42e5010cf9de35baaaf"  ,
+	"name": "Warframe",
+    "desc": "GAAAAAAAAAAAAAAMES",
+	"admins":  ["65b288108a8e35ca076ceec1", "c9a78b4d2e981f864fc55ca7"],
+	"owner": "65b288108a8e35ca076ceec1",
+  "tags": ["gaming", "hobby"]
+},
+  {
+    "id": "65b3b9989469eaffd81209a6",
+    "name": "Travel Explorers",
+    "desc": "Discover and share travel experiences around the world.",
+    "admins": ["6f0d4e28cb46a7a22c1a5e14", "2dcdbf68c3f17e30a1c975e9"],
+    "owner": "6f0d4e28cb46a7a22c1a5e14",
+    "tags": ["hobby", "travel"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209a7",
+    "name": "Fitness Fanatics",
+    "desc": "Empowering individuals through fitness and wellness.",
+    "admins": ["c9a78b4d2e981f864fc55ca7", "bd7e03fa9d10e8a41c789b3d"],
+    "owner": "c9a78b4d2e981f864fc55ca7",
+    "tags": ["hobby", "workout"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209a8",
+    "name": "Art & Creativity",
+    "desc": "Celebrate the world of art and unleash your creativity.",
+    "admins": ["2dcdbf68c3f17e30a1c975e9", "f5a8d6b7c9a21e8643b90ce2"],
+    "owner": "2dcdbf68c3f17e30a1c975e9",
+    "tags": ["hobby", "art"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209a9",
+    "name": "Gaming Universe",
+    "desc": "Connect with fellow gamers and explore new gaming worlds.",
+    "admins": ["bd7e03fa9d10e8a41c789b3d", "f5a8d6b7c9a21e8643b90ce2"],
+    "owner": "bd7e03fa9d10e8a41c789b3d",
+    "tags": ["gaming", "hobby"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209aa",
+    "name": "Bookworm Haven",
+    "desc": "Dive into the world of literature and share your favorite books.",
+    "admins": ["f5a8d6b7c9a21e8643b90ce2", "349c7f50e2e31a07c8bf17dc"],
+    "owner": "f5a8d6b7c9a21e8643b90ce2",
+    "tags": ["books", "lifestyle"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209ab",
+    "name": "Culinary Delights",
+    "desc": "Explore the culinary world and share your favorite recipes.",
+    "admins": ["349c7f50e2e31a07c8bf17dc", "810bbd2f78f43b4e42a97b10"],
+    "owner": "349c7f50e2e31a07c8bf17dc",
+    "tags": ["inspiration", "cooking"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209ac",
+    "name": "Movie Buffs Club",
+    "desc": "Discuss and discover the latest movies and cinematic masterpieces.",
+    "admins": ["810bbd2f78f43b4e42a97b10", "ca522b0f6a81e4c94e0036a5"],
+    "owner": "810bbd2f78f43b4e42a97b10",
+    "tags": ["movies", "hobby"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209ad",
+    "name": "Music Mania",
+    "desc": "Immerse yourself in the world of music and share your favorite tunes.",
+    "admins": ["ca522b0f6a81e4c94e0036a5", "9730bf3c7d3cc1cb1b56e5e0"],
+    "owner": "ca522b0f6a81e4c94e0036a5",
+    "tags": ["music", "professional"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209ae",
+    "name": "Photography Enclave",
+    "desc": "Capture and showcase the beauty of the world through photography.",
+    "admins": ["9730bf3c7d3cc1cb1b56e5e0", "c23f7996ec5381aefb7d4d57"],
+    "owner": "9730bf3c7d3cc1cb1b56e5e0",
+    "tags": ["hobby", "photography"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209af",
+    "name": "Fashion Hub",
+    "desc": "Express your style and stay updated on the latest fashion trends.",
+    "admins": ["c23f7996ec5381aefb7d4d57", "b3ee2a42ac853fcd5a1c3a26"],
+    "owner": "c23f7996ec5381aefb7d4d57",
+    "tags": ["fashion", "lifestyle"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209b1",
+    "name": "Home DIY Club",
+    "desc": "Share and learn creative home improvement ideas and projects.",
+    "admins": ["b3ee2a42ac853fcd5a1c3a26", "0c19d5db2d650b0e4ee0a17f"],
+    "owner": "b3ee2a42ac853fcd5a1c3a26",
+    "tags": ["hobby", "DIY"]
+  },
+  {
+    "id": "65b3b9989469eaffd81209b2",
+    "name": "Coding Wizards",
+    "desc": "Connect with fellow programmers and explore the world of coding.",
+    "admins": ["0c19d5db2d650b0e4ee0a17f", "9a0a4d4d45b8efc3a37f5f5b"],
+    "owner": "0c19d5db2d650b0e4ee0a17f",
+    "tags": ["programming", "education"]
+  }
+]
