@@ -55,7 +55,7 @@ func main() {
 	r.PUT("/u/:name", func(c *gin.Context) { handler.UpdateUser(c, users) })
 	r.POST("/a", func(c *gin.Context) { handler.AddNewAdmin(c, users, admins) })
 	r.DELETE("/u", func(c *gin.Context) { handler.DeleteUser(c, users) })
-	// r.GET("/u/search", func(c *gin.Context) { handler.SearchUser(c, users) })
+	r.GET("/u/search/:name", func(c *gin.Context) { handler.SearchUsers(c, users) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 

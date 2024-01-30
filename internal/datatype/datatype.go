@@ -16,6 +16,12 @@ type User struct {
 	About    string             `json:"about" bson:"about"`
 }
 
+type UserResponse struct {
+	Name  string `json:"name" bson:"name"`
+	Email string `json:"email" bson:"email"`
+	Age   int    `json:"age" bson:"age"`
+	About string `json:"about" bson:"about"`
+}
 type Post struct {
 	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Title     string             `json:"title" bson:"title" validate:"required,isUnique"`

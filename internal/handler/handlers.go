@@ -47,7 +47,7 @@ func MainPage(c *gin.Context, posts *mongo.Collection) {
 
 	projectFields := bson.D{
 		{"$project", bson.D{
-			{"_id", 0}, // Exclude post ID
+			{"_id", 0},
 			{"title", 1},
 			{"content", 1},
 			{"karma", 1},
@@ -378,6 +378,75 @@ func DeleteUser(c *gin.Context, collection *mongo.Collection) {
 		Success: true,
 		Data:    "User removed",
 	})
+}
+
+func SearchUsers(c *gin.Context, collection *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	keyword, ok := c.Params.Get("name")
+	if !ok {
+		c.JSON(http.StatusBadRequest, datatype.Response{
+			Success: false,
+			Data:    "Invalid parameter",
+		})
+	}
+
+	ageStep := bson.D{
+		{"$addFields", bson.D{
+			{"age", bson.D{
+				{"$round", bson.A{
+					bson.D{
+						{"$divide", bson.A{
+							bson.D{
+								{"$subtract", bson.A{
+									time.Now(),
+									"$dob",
+								}},
+							},
+							31536000000,
+						}},
+					},
+				}},
+			}},
+		}},
+	}
+
+	matchStep := bson.D{
+		{"$match", bson.D{
+			{"name", primitive.Regex{Pattern: keyword, Options: "i"}},
+		}},
+	}
+
+	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{matchStep, ageStep})
+	if err != nil {
+		c.JSON(501, datatype.Response{
+			Success: false,
+			Data:    "Failed connecting to server",
+		})
+		log.Debug(err)
+		return
+	}
+
+	var userResult []datatype.UserResponse
+	err = cursor.All(ctx, &userResult)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	if len(userResult) == 0 {
+		c.JSON(http.StatusNotFound, datatype.Response{
+			Success: true,
+			Data:    "No such user",
+		})
+	} else {
+		c.JSON(http.StatusOK, userResult)
+	}
 }
 
 func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
