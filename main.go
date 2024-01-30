@@ -45,6 +45,7 @@ func main() {
 	posts := redditos.Collection("posts")
 	communities := redditos.Collection("communities")
 	admins := redditos.Collection("admins")
+	comments := redditos.Collection("comments")
 
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) { handler.MainPage(c, posts) })
@@ -56,6 +57,7 @@ func main() {
 	r.POST("/a", func(c *gin.Context) { handler.AddNewAdmin(c, users, admins) })
 	r.DELETE("/u", func(c *gin.Context) { handler.DeleteUser(c, users) })
 	r.GET("/u/search/:name", func(c *gin.Context) { handler.SearchUsers(c, users) })
+	r.GET("/u/top", func(c *gin.Context) { handler.ShowBestUsers(c, users, posts, comments) })
 
 	r.POST("/new-post", func(c *gin.Context) { handler.AddNewPost(c, posts) })
 

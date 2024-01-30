@@ -449,6 +449,81 @@ func SearchUsers(c *gin.Context, collection *mongo.Collection) {
 	}
 }
 
+func ShowBestUsers(c *gin.Context, users *mongo.Collection, posts *mongo.Collection, comments *mongo.Collection) {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	lookupPostsStage := bson.D{
+		{"$lookup", bson.D{
+			{"from", "posts"},
+			{"localField", "_id"},
+			{"foreignField", "author"},
+			{"as", "posts"},
+		}},
+	}
+
+	lookupCommentsStage := bson.D{
+		{"$lookup", bson.D{
+			{"from", "comments"},
+			{"localField", "_id"},
+			{"foreignField", "author"},
+			{"as", "comments"},
+		}},
+	}
+
+	projectStage := bson.D{
+		{"$project", bson.D{
+			{"_id", 0},
+			{"name", 1},
+			{"karma", bson.D{
+				{"$add", bson.A{
+					bson.D{{"$sum", "$posts.karma"}},
+					bson.D{{"$sum", "$comments.karma"}},
+				}},
+			}},
+		}},
+	}
+
+	sortStage := bson.D{
+		{"$sort", bson.D{
+			{"karma", -1},
+		}},
+	}
+
+	limitStage := bson.D{
+		{"$limit", 15},
+	}
+	pipeline := mongo.Pipeline{lookupPostsStage, lookupCommentsStage, projectStage, sortStage, limitStage}
+
+	cursor, err := users.Aggregate(ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Failed connecting to the server",
+		})
+		log.Debug(err)
+		return
+	}
+
+	type usersRes = struct {
+		Name  string `json:"name" bson:"name"`
+		Karma int    `json:"karma" bson:"karma"`
+	}
+	var answers []usersRes
+
+	err = cursor.All(ctx, &answers)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, datatype.Response{
+			Success: false,
+			Data:    "Couldn't decode data",
+		})
+		log.Debug(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, answers)
+}
+
 func AddNewAdmin(c *gin.Context, collection *mongo.Collection, admins *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()

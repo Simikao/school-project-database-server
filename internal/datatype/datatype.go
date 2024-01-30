@@ -51,6 +51,7 @@ type Comment struct {
 	ID      primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Author  primitive.ObjectID `json:"author" bson:"author"`
 	Content string             `json:"content" bson:"content" validate:"max=10000"`
+	Karma   int                `json:"-" bson:"karma"`
 }
 
 type Administrator struct {
